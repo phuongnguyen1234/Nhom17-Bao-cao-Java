@@ -2,8 +2,11 @@ package View;
 
 import javax.swing.*;
 import javax.swing.table.*;
+
+import Controller.*;
+
 import java.util.ArrayList;
-import Control.*;
+
 import Model.Product;
 
 public class View {
@@ -12,7 +15,7 @@ public class View {
     private JFileChooser fileChooser = new JFileChooser();
     public JFrame frame = new JFrame("Quản lí mặt hàng");
     public boolean fileIsChosen = false;
-    Control control = new Control(this, fileChooser);
+    Controller control = new Controller(this, fileChooser);
 
     public void createAndShowUI() {
         // Tao cua so chuong trinh

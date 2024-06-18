@@ -1,4 +1,4 @@
-package Control;
+package Controller;
 
 import java.awt.event.*;
 import java.io.*;
@@ -7,16 +7,16 @@ import javax.swing.*;
 import View.*;
 import Model.Product;
 
-public class Control implements ActionListener {
+public class Controller implements ActionListener {
     private View view;
     private JFileChooser fileChooser;
     private File file = null;
     private ArrayList<Product> list = new ArrayList<>();
     private boolean fileIsValid = true;
 
-    public Control() {}
+    public Controller() {}
 
-    public Control(View view, JFileChooser fileChooser) {
+    public Controller(View view, JFileChooser fileChooser) {
         this.view = view;
         this.fileChooser = fileChooser;
     }
@@ -98,7 +98,7 @@ public class Control implements ActionListener {
                 if (isAdded) {
                     JOptionPane.showMessageDialog(view.frame, "Thêm thành công");
                     view.updateTable(list);
-                    putListIntoFile(list, file.getName());
+                    putListIntoFile(list, file);
                     break;
                 } else {
                     JOptionPane.showMessageDialog(view.frame, "Mã hàng đã tồn tại! Vui lòng nhập lại.");
@@ -160,7 +160,7 @@ public class Control implements ActionListener {
                 }
     
                 list.set(list.indexOf(searchResult), new Product(id, name, color, price));
-                putListIntoFile(list, file.getName());
+                putListIntoFile(list, file);
                 view.updateTable(list);
                 break;
             } else {
@@ -185,11 +185,12 @@ public class Control implements ActionListener {
         Product isFound = search(list, id); //kiem tra neu ma hang vua nhap co trong danh sach
         if (isFound == null) {
             JOptionPane.showMessageDialog(view.frame, "Không tìm thấy sản phẩm với mã hàng này.");
+            return;
         } else {
             int choice = JOptionPane.showConfirmDialog(view.frame, "Bạn có chắc chắn muốn xóa sản phẩm này?", "Xác nhận", JOptionPane.YES_NO_OPTION);
             if (choice == JOptionPane.YES_OPTION) {
                 list.remove(isFound);
-                putListIntoFile(list, file.getName());
+                putListIntoFile(list, file);
                 view.updateTable(list);
             }
         }
@@ -210,6 +211,7 @@ public class Control implements ActionListener {
         Product product = search(list, id);
         if (product == null) {
             JOptionPane.showMessageDialog(view.frame, "Không tìm thấy sản phẩm với mã hàng này.");
+            return;
         } else {
             JOptionPane.showMessageDialog(view.frame, "Kết quả tìm kiếm:\n" +
                 "Mã hàng: " + product.getId() + "\n" +
@@ -248,7 +250,7 @@ public class Control implements ActionListener {
                 return;
         }
         list.sort(comparator);
-        putListIntoFile(list, file.getName());
+        putListIntoFile(list, file);
         view.updateTable(list);
     }
 
@@ -265,9 +267,8 @@ public class Control implements ActionListener {
                     list.clear();
                     view.updateTable(list);
                     view.frame.setTitle("Quản lí mặt hàng - " + file.getAbsolutePath() + " (lưu tự động)");
-                } else {
-                    JOptionPane.showMessageDialog(view.frame, "File đã tồn tại!");
-                }
+                    putListIntoFile(list, file);
+                } else JOptionPane.showMessageDialog(view.frame, "File đã tồn tại!");
             } catch (IOException e) {
                 JOptionPane.showMessageDialog(view.frame, "Lỗi khi tạo file mới: " + e.getMessage());
             }
@@ -279,7 +280,7 @@ public class Control implements ActionListener {
         int result = fileChooser.showOpenDialog(view.frame);
         if (result == JFileChooser.APPROVE_OPTION) {
             file = fileChooser.getSelectedFile();
-            list = getListFromFile(file.getName());
+            list = getListFromFile(file);
             if(fileIsValid) {
                 view.updateTable(list);
                 view.fileIsChosen = true;
@@ -288,19 +289,20 @@ public class Control implements ActionListener {
         }
     }
 
-    public ArrayList<Product> getListFromFile(String fileName) { //phuong thuc doc danh sach tu file
+    public ArrayList<Product> getListFromFile(File file) { //phuong thuc doc danh sach tu file
         ArrayList<Product> list = new ArrayList<>();
-        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(fileName))) {
+        try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(file))) {
             list = (ArrayList<Product>) ois.readObject();
         } catch (Exception e) {
             JOptionPane.showMessageDialog(view.frame, "File không hợp lệ!");
+            e.printStackTrace();
             fileIsValid = false;
         }
         return list;
     }
 
-    public void putListIntoFile(ArrayList<Product> list, String fileName) { //phuong thuc ghi danh sach vao file
-        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(fileName))) {
+    public void putListIntoFile(ArrayList<Product> list, File file) { //phuong thuc ghi danh sach vao file
+        try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(file))) {
             oos.writeObject(list);
         } catch (IOException e) {
             JOptionPane.showMessageDialog(view.frame, "Lỗi ghi file!");
